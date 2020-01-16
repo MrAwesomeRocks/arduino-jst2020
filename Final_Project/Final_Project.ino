@@ -1,8 +1,30 @@
+// MPU libraries
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "Wire.h"
 
+// Include motor library
+#include "SparkFun_TB6612.h"
+
 MPU6050 mpu; // Create mpu object
+
+/* ======================================
+ *         Define motor constants 
+ * ======================================
+ */
+// Motor A:
+#define AIN1 3
+#define AIN2 4
+#define PWMA 5
+const int offsetA = 1; // Direction offset
+// Motor B:
+#define BIN1 8
+#define BIN2 7
+#define PWMB 6
+const int offsetB = 1; // Direction offset
+// Standby
+#define STBY 9 
+
 
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
 bool blinkState = false;
