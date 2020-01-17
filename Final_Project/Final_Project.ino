@@ -59,7 +59,7 @@ float prevAngle = 0;
 float error = 0;
 float errorSum = 0;
 float motorPower = 0;
-float spMotorPower = 0; // Speed adjusted
+//float spMotorPower = 0; // Speed adjusted, not needed
 
 // Pid constants
 #define Kp  40
@@ -72,7 +72,7 @@ float sampleTime;
 
 // Control variables
 char moveDirection = "S";
-int speedMult = 0;
+float speedMult = 0;
 #include "Bluetooth_Macros.h" // App macros for switch
 /*=======================================
         Create motor and MPU objects
@@ -162,15 +162,27 @@ void loop() {
       // try to get out of the infinite loop
       fifoCount = mpu.getFIFOCount();
     }
-    /*else if (Serial.available() > 0) {
+    /*=====================================================================================================
+     * HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE
+     * ====================================================================================================
+     */
+    else if (Serial.available() > 0) {
       moveDirection = Serial.read();
       switch (moveDirection) {
         case STOP:
-          forward(RMotor, LMotor, spMotorPower);
+          targetAngle = 0 // Balance
           break;
-        case
+        case FORWARD:
+          targetAngle = speedMult * 30; // 30 deg times multiplier
+          break;
+        case SPEED0:
+          speedMult = moveDirection / 10.0; // Scale to decrease speed, since from 1-10
+          break;
+        case SPEED5:
+          speedMult = moveDirection / 10.0; // Scale to decrease speed, since from 1-10
+          break;
       }
-    }*/
+    }
   }
 
   // reset interrupt flag and get INT_STATUS byte
@@ -207,22 +219,26 @@ void loop() {
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
     // Calculate error
-    currAngle = ypr[1] * 180 / M_PI; // Get pitch
-    error = currAngle - targetAngle; // Find error
-    errorSum = errorSum + error;     // Calculate sum of error for I
-    errorSum = constrain(errorSum, -300, 300);
+    currAngle = ypr[1] * 180 / M_PI;           // Get pitch
+    error = currAngle - targetAngle; //Switch? // Find error
+    errorSum = errorSum + error;               // Calculate sum of error for I
+    errorSum = constrain(errorSum, -300, 300); // Limit Ki
 
     // Calculate motor power from P, I and D values
-    currTime = millis();              // Get time
+    currTime = millis();              // Get time for Ki
     sampleTime = currTime - prevTime; // Find time needed to get values
-    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime;  // Calculate power
-    //spMotorPower = motorPower * speedMult; // Adjust for speed
+
+    // Calculate power with PID
+    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime;  
+    //spMotorPower = motorPower * speedMult; // Adjust for speed, not used
+
+    //Refresh angles for next iteration
     prevAngle = currAngle;
     prevTime = currTime;
 
     // Set motors
     forward(RMotor, LMotor, motorPower);
-    /* Uncomment to print yaw/pitch/roll
+    /* // Uncomment to print yaw/pitch/roll
         Serial.print("ypr\t");
         Serial.print(ypr[0] * 180 / M_PI);
         Serial.print("\t");

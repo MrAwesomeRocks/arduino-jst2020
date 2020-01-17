@@ -215,8 +215,12 @@ void loop() {
     // Calculate motor power from P, I and D values
     currTime = millis();              // Get time
     sampleTime = currTime - prevTime; // Find time needed to get values
-    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime;  // Calculate power
+    
+    // Calculate power, using PID
+    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime; // -Kd?? 
     //spMotorPower = motorPower * speedMult; // Adjust for speed
+    
+    //Refresh angles for next iteration
     prevAngle = currAngle;
     prevTime = currTime;
 
