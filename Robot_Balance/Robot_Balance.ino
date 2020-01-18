@@ -19,7 +19,7 @@
 #define AIN1 3
 #define AIN2 4
 #define PWMA 5
-const int offsetA = 1; // Direction offset
+const int offsetA = -1; // Direction offset
 // Motor B:
 #define BIN1 8
 #define BIN2 7
@@ -62,9 +62,9 @@ float motorPower = 0;
 float spMotorPower = 0; // Speed adjusted
 
 // Pid constants
-#define Kp  40
-#define Kd  0.05
-#define Ki  40
+#define Kp  40    // 40
+#define Kd  0.05  // 0.05
+#define Ki  40    // 40
 
 // Time variables
 unsigned long int currTime, prevTime = 0;
@@ -73,7 +73,7 @@ float sampleTime;
 // Control variables
 char moveDirection = "S";
 int speedMult = 0;
-#include "Bluetooth_Macros.h" // App macros for switch
+//#include "Bluetooth_Macros.h" // App macros for switch
 /*=======================================
         Create motor and MPU objects
    ======================================
@@ -82,8 +82,8 @@ int speedMult = 0;
 MPU6050 mpu;
 
 // Motors
-Motor RMotor = Motor(AIN1, AIN2, PWMA, offsetA, STBY); // Right Motor
-Motor LMotor = Motor(BIN1, BIN2, PWMB, offsetB, STBY); // Left Motor
+Motor LMotor = Motor(AIN1, AIN2, PWMA, offsetA, STBY); // Right Motor
+Motor RMotor = Motor(BIN1, BIN2, PWMB, offsetB, STBY); // Left Motor
 
 
 /*====================================
@@ -104,7 +104,7 @@ void setup() {
   Wire.begin();
   Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties
 
-  Serial.begin(9600); // Start Serial Monitor, HC-05 uses 9600
+  Serial.begin(112500); // Start Serial Monitor, HC-05 uses 9600
 
   // initialize device
   mpu.initialize();
@@ -207,7 +207,7 @@ void loop() {
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
     // Calculate error
-    currAngle = ypr[1] * 180 / M_PI; // Get pitch
+    currAngle = ypr[1] * DEG_TO_RAD; // Get pitch
     error = currAngle - targetAngle; // Find error
     errorSum = errorSum + error;     // Calculate sum of error for I
     errorSum = constrain(errorSum, -300, 300);
@@ -217,22 +217,29 @@ void loop() {
     sampleTime = currTime - prevTime; // Find time needed to get values
     
     // Calculate power, using PID
-    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime; // -Kd?? 
-    //spMotorPower = motorPower * speedMult; // Adjust for speed
+    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle); // sampleTime; // -Kd?? 
+    spMotorPower = constrain(motorPower, -255, 255); // Limit to avoid overflow
+    //spMotorPower = map(motorPower, -1000.0, 1000.0, -256.0, 255.0); // Adjust for speed
     
     //Refresh angles for next iteration
     prevAngle = currAngle;
     prevTime = currTime;
 
     // Set motors
-    forward(RMotor, LMotor, motorPower);
-    /* Uncomment to print yaw/pitch/roll
-        Serial.print("ypr\t");
+    forward(RMotor, LMotor, spMotorPower);
+    /* Uncomment to print yaw/pitch/roll*/
+        Serial.print("ypr m/Sm/t\t");
         Serial.print(ypr[0] * 180 / M_PI);
         Serial.print("\t");
         Serial.print(ypr[1] * 180 / M_PI);
         Serial.print("\t");
-        Serial.println(ypr[2] * 180 / M_PI);
-    */
+        Serial.print(ypr[2] * 180 / M_PI);
+        Serial.print("\t \t");
+        Serial.print(motorPower);
+        Serial.print("\t");
+        Serial.print(spMotorPower);
+        Serial.print("\t");
+        Serial.println(sampleTime);
+    //*/
   }
 }
