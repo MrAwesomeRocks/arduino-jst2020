@@ -19,12 +19,12 @@
 #define AIN1 3
 #define AIN2 4
 #define PWMA 5
-const int offsetA = -1; // Direction offset
+const int offsetA = 1; // Direction offset
 // Motor B:
 #define BIN1 8
 #define BIN2 7
 #define PWMB 6
-const int offsetB = 1; // Direction offset
+const int offsetB = -1; // Direction offset
 // Standby pin
 #define STBY 9
 
@@ -62,9 +62,9 @@ float motorPower = 0;
 float spMotorPower = 0; // Speed adjusted
 
 // Pid constants
-#define Kp  40    // 40
-#define Kd  0.05  // 0.05
-#define Ki  40    // 40
+#define Kp  50000 // 40
+#define Kd  0     // 0.05
+#define Ki  0     // 40
 
 // Time variables
 unsigned long int currTime, prevTime = 0;
@@ -115,11 +115,11 @@ void setup() {
 
   // set offsets
   mpu.setXGyroOffset(112);
-  mpu.setYGyroOffset(16);
-  mpu.setZGyroOffset(-9);
-  mpu.setXAccelOffset(-4439);
-  mpu.setYAccelOffset(-1385);
-  mpu.setZAccelOffset(935);
+  mpu.setYGyroOffset(12);
+  mpu.setZGyroOffset(-11);
+  mpu.setXAccelOffset(-4390);
+  mpu.setYAccelOffset(-1294);
+  mpu.setZAccelOffset(894);
 
   // Make sure it works (returns 0):
   if (devStatus == 0) {
@@ -207,7 +207,7 @@ void loop() {
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
     // Calculate error
-    currAngle = ypr[1] * DEG_TO_RAD; // Get pitch
+    currAngle = ypr[2] * DEG_TO_RAD; // Get rool, which is angle
     error = currAngle - targetAngle; // Find error
     errorSum = errorSum + error;     // Calculate sum of error for I
     errorSum = constrain(errorSum, -300, 300);
