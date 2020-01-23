@@ -82,8 +82,8 @@ int speedMult = 0;
 MPU6050 mpu;
 
 // Motors
-Motor LMotor = Motor(AIN1, AIN2, PWMA, offsetA, STBY); // Right Motor
-Motor RMotor = Motor(BIN1, BIN2, PWMB, offsetB, STBY); // Left Motor
+Motor RMotor = Motor(AIN1, AIN2, PWMA, offsetA, STBY); // Right Motor
+Motor LMotor = Motor(BIN1, BIN2, PWMB, offsetB, STBY); // Left Motor
 
 
 /*====================================
@@ -201,23 +201,23 @@ void loop() {
     }
 
     // Get yaw, pitch, and roll angles
-    // Although we only need pitch
+    // Although we only need roll
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
     // Calculate error
-    currAngle = ypr[2] * DEG_TO_RAD; // Get rool, which is angle
+    currAngle = ypr[2] * DEG_TO_RAD; // Get roll, which is the robot's angle
     error = currAngle - targetAngle; // Find error
     errorSum = errorSum + error;     // Calculate sum of error for I
-    errorSum = constrain(errorSum, -300, 300);
+    errorSum = constrain(errorSum, -300, 300); // Limit Ki
 
     // Calculate motor power from P, I and D values
-    currTime = millis();              // Get time
+    currTime = millis();              // Get time for Ki
     sampleTime = currTime - prevTime; // Find time needed to get values
     
     // Calculate power, using PID
-    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle); // sampleTime; // -Kd?? 
+    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime;
     spMotorPower = constrain(motorPower, -255, 255); // Limit to avoid overflow
     //spMotorPower = map(motorPower, -1000.0, 1000.0, -256.0, 255.0); // Adjust for speed
     
