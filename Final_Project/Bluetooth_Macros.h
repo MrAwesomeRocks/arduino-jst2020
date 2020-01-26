@@ -8,7 +8,7 @@
 
 // Directions
 #define FORWARD 'F'
-#define BACKWARD 'B'
+#define REVERSE 'B'
 #define LEFT 'L'
 #define RIGHT 'R'
 #define FORLEFT 'G'

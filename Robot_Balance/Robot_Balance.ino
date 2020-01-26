@@ -33,7 +33,6 @@ const int offsetB = -1; // Direction offset
    ======================================
 */
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
-bool blinkState = false;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -62,9 +61,9 @@ float motorPower = 0;
 float spMotorPower = 0; // Speed adjusted
 
 // Pid constants
-#define Kp  50000 // 40
-#define Kd  0     // 0.05
-#define Ki  0     // 40
+#define Kp  75000     // 40, mine was 85500, 78000
+#define Kd  750     // 0.05, 500, 750
+#define Ki  100         // 40, 85, 250
 
 // Time variables
 unsigned long int currTime, prevTime = 0;
@@ -154,7 +153,13 @@ void setup() {
 
 void loop() {
   // if programming failed, don't try to do anything
-  if (!dmpReady) return;
+  if (!dmpReady){
+    digitalWrite(9, HIGH);
+    delay(1000);
+    digitalWrite(9, LOW);
+    delay(1000);
+    return;
+  }
 
   // wait for MPU interrupt or extra packet(s) available
   while (!mpuInterrupt && fifoCount < packetSize) {

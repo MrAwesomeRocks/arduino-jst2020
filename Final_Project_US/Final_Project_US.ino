@@ -33,7 +33,6 @@ const int offsetB = -1; // Direction offset
    ======================================
 */
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
-bool blinkState = false;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -62,9 +61,9 @@ float motorPower = 0;
 float spMotorPower = 0; // Speed adjusted
 
 // Pid constants
-#define Kp  50000   // 40
-#define Kd  0       // 0.05
-#define Ki  0       // 40
+#define Kp  75000   // 40
+#define Kd  750       // 0.05
+#define Ki  100       // 40
 
 // Time variables
 unsigned long int currTime, prevTime = 0;

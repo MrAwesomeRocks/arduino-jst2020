@@ -33,7 +33,6 @@ const int offsetB = -1; // Direction offset
    ======================================
 */
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
-bool blinkState = false;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -62,9 +61,9 @@ float motorPower = 0;
 float spMotorPower = 0; // Speed adjusted
 
 // Pid constants
-#define Kp  50000   // 40
-#define Kd  0       // 0.05
-#define Ki  0       // 40
+#define Kp  75000   // 40
+#define Kd  750       // 0.05
+#define Ki  100       // 40
 
 // Time variables
 unsigned long int currTime, prevTime = 0;
@@ -152,6 +151,13 @@ void setup() {
   }
 }
 
+
+/*=====================================
+ *             MAIN LOOP
+ * ====================================
+ */
+
+
 void loop() {
   // if programming failed, don't try to do anything
   if (!dmpReady) return;
@@ -162,9 +168,9 @@ void loop() {
       // try to get out of the infinite loop
       fifoCount = mpu.getFIFOCount();
     }
-    /*=====================================================================================================
-     * HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE HERE
-     * ====================================================================================================
+    /*====================================================================
+     *                     Bluetooth Switch Statement
+     * ===================================================================
      */
     else if (Serial.available() > 0) {
       moveDirection = Serial.read();
@@ -277,7 +283,7 @@ void loop() {
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
     // Calculate error
-    currAngle = ypr[1] * 180 / M_PI;           // Get roll, which is the robot's angle
+    currAngle = ypr[2]*DEG_TO_RAD;           // Get roll, which is the robot's angle
     error = currAngle - targetAngle; //Switch? // Find error
     errorSum = errorSum + error;               // Calculate sum of error for I
     errorSum = constrain(errorSum, -300, 300); // Limit Ki
@@ -297,7 +303,7 @@ void loop() {
 
     // Set motors
     forward(RMotor, LMotor, spMotorPower);
-    /* Uncomment to print yaw/pitch/roll*/
+    /* Uncomment to print yaw/pitch/roll
         Serial.print("ypr m/Sm/t\t");
         Serial.print(ypr[0] * 180 / M_PI);
         Serial.print("\t");
