@@ -153,14 +153,20 @@ void setup() {
 
 
 /*=====================================
- *             MAIN LOOP
- * ====================================
- */
+               MAIN LOOP
+   ====================================
+*/
 
 
 void loop() {
   // if programming failed, don't try to do anything
-  if (!dmpReady) return;
+  if (!dmpReady) {
+    digitalWrite(9, HIGH);
+    delay(1000);
+    digitalWrite(9, LOW);
+    delay(1000);
+    return;
+  }
 
   // wait for MPU interrupt or extra packet(s) available
   while (!mpuInterrupt && fifoCount < packetSize) {
@@ -169,9 +175,9 @@ void loop() {
       fifoCount = mpu.getFIFOCount();
     }
     /*====================================================================
-     *                     Bluetooth Switch Statement
-     * ===================================================================
-     */
+                           Bluetooth Switch Statement
+       ===================================================================
+    */
     else if (Serial.available() > 0) {
       moveDirection = Serial.read();
       switch (moveDirection) {
@@ -245,6 +251,8 @@ void loop() {
         case SPEED10:
           speedMult = 1.0; // Scale to decrease speed, since from 1-10
           break;
+        default:
+          break;
       }
     }
   }
@@ -283,7 +291,7 @@ void loop() {
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
     // Calculate error
-    currAngle = ypr[2]*DEG_TO_RAD;           // Get roll, which is the robot's angle
+    currAngle = ypr[2] * DEG_TO_RAD;         // Get roll, which is the robot's angle
     error = currAngle - targetAngle; //Switch? // Find error
     errorSum = errorSum + error;               // Calculate sum of error for I
     errorSum = constrain(errorSum, -300, 300); // Limit Ki
@@ -293,7 +301,7 @@ void loop() {
     sampleTime = currTime - prevTime; // Find time needed to get values
 
     // Calculate power with PID
-    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime;  
+    motorPower = Kp * (error) + Ki * (errorSum) * sampleTime - Kd * (currAngle - prevAngle) / sampleTime;
     spMotorPower = constrain(motorPower, -255, 255); // Limit to avoid overflow
     //spMotorPower = motorPower * speedMult; // Adjust for speed, not used
 
@@ -316,6 +324,6 @@ void loop() {
         Serial.print(spMotorPower);
         Serial.print("\t");
         Serial.println(sampleTime);
-    //*/
+      //*/
   }
 }

@@ -238,6 +238,8 @@ void loop() {
         case SPEED10:
           speedMult = 1.0; // Scale to decrease speed, since from 1-10
           break;
+        default:
+          break;
       }
     }
   }
